@@ -41,7 +41,7 @@ pip install bettertotp[all]         # all optional features
 ### From source
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/skjaimini9/bettertotp.git
 cd bettertotp
 pip install -e .
 ```
