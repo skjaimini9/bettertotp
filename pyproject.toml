@@ -30,16 +30,15 @@ requires-python = ">=3.10"
 dependencies = [
     "cryptography",
 ]
-optional-dependencies = {
-    clipboard = ["pyperclip"],
-    qr = ["qrcode[pil]"],
-    completion = ["argcomplete"],
-    all = [
-        "bettertotp[clipboard]",
-        "bettertotp[qr]",
-        "bettertotp[completion]",
-    ],
-}
+[project.optional-dependencies]
+clipboard = ["pyperclip"]
+qr = ["qrcode[pil]"]
+completion = ["argcomplete"]
+all = [
+    "bettertotp[clipboard]",
+    "bettertotp[qr]",
+    "bettertotp[completion]",
+]
 
 [project.urls]
 Homepage = "https://github.com/skjaimini9/bettertotp"

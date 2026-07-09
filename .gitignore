@@ -13,6 +13,10 @@ android/gradle/wrapper/gradle-wrapper.jar
 *.jks
 *.keystore
 
+# Build artifacts
+dist/
+*.egg-info/
+
 # Linux binary
 linux/dist/
 linux/__pycache__/
