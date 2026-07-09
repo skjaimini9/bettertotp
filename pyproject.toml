@@ -1,15 +1,31 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=69.0", "wheel"]
 build-backend = "setuptools.build_meta:__legacy__"
 
 [project]
 name = "bettertotp"
 version = "0.2.0"
 description = "A TOTP-based time-varying code generator with alphanumeric and special character output"
+readme = "README.md"
 authors = [
     {name = "Shri Kant", email = "skjaimini9@gmail.com"},
 ]
 license = {text = "MIT"}
+keywords = ["totp", "2fa", "authentication", "security", "one-time-password", "hmac", "sha512"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Utilities",
+]
 requires-python = ">=3.10"
 dependencies = [
     "cryptography",
@@ -24,6 +40,11 @@ optional-dependencies = {
         "bettertotp[completion]",
     ],
 }
+
+[project.urls]
+Homepage = "https://github.com/skjaimini9/bettertotp"
+Repository = "https://github.com/skjaimini9/bettertotp"
+"Bug Tracker" = "https://github.com/skjaimini9/bettertotp/issues"
 
 [project.scripts]
 btotp = "btotp.cli:main"
