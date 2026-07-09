@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=BetterTOTP
+Comment=TOTP code generator with alphanumeric+special output
+Exec=btotp %u
+Icon=btotp
+Type=Application
+Terminal=false
+Categories=Utility;Security;
+MimeType=x-scheme-handler/otpauth;
+StartupNotify=true

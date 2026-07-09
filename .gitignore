@@ -1,0 +1,24 @@
+*.pyc
+__pycache__
+*.egg-info
+.env
+CODE_STRUCTURE.md
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/gradle/wrapper/gradle-wrapper.jar
+*.jks
+*.keystore
+
+# Linux binary
+linux/dist/
+linux/__pycache__/
+linux/*.pyc
+
+# Web API
+web/__pycache__/
+web/*.pyc
+

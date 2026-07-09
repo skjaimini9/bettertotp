@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta:__legacy__"
+
+[project]
+name = "bettertotp"
+version = "0.2.0"
+description = "A TOTP-based time-varying code generator with alphanumeric and special character output"
+authors = [
+    {name = "Shri Kant", email = "skjaimini9@gmail.com"},
+]
+license = {text = "MIT"}
+requires-python = ">=3.10"
+dependencies = [
+    "cryptography",
+]
+optional-dependencies = {
+    clipboard = ["pyperclip"],
+    qr = ["qrcode[pil]"],
+    completion = ["argcomplete"],
+    all = [
+        "bettertotp[clipboard]",
+        "bettertotp[qr]",
+        "bettertotp[completion]",
+    ],
+}
+
+[project.scripts]
+btotp = "btotp.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["btotp*"]
+
+[tool.setuptools.package-data]
+btotp = ["py.typed"]

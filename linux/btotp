@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+import os
+import sys
+import shutil
+import subprocess
+
+
+def handle_otpauth_uri(uri: str):
+    """Import an otpauth:// URI directly (called from xdg-open)."""
+    from btotp.vault import Vault
+    from btotp.uri import parse_otpauth
+
+    vault = Vault()
+    if not vault.exists():
+        print("No vault found. Create one with: btotp init", file=sys.stderr)
+        sys.exit(1)
+    vault.unlock()
+    parsed = parse_otpauth(uri)
+    name = parsed.get("account", "imported")
+    vault.add(
+        name, parsed["secret"],
+        issuer=parsed.get("issuer", ""),
+        algorithm=parsed.get("algorithm", "sha512"),
+        digits=parsed.get("digits", 12),
+        period=parsed.get("period", 45),
+    )
+    print(f"Imported '{name}' from URI")
+
+
+def main():
+    # Handle otpauth:// URI arguments (from xdg-open / browser)
+    if len(sys.argv) > 1:
+        arg = sys.argv[1]
+        if arg.startswith("otpauth://"):
+            handle_otpauth_uri(arg)
+            return
+
+    has_display = "DISPLAY" in os.environ or "WAYLAND_DISPLAY" in os.environ
+    has_tk = False
+    try:
+        import tkinter
+        has_tk = bool(has_display)
+    except ImportError:
+        pass
+
+    if has_tk and has_display:
+        from gui import main as gui_main
+        gui_main()
+    else:
+        from btotp.cli import main as cli_main
+        cli_main()
+
+
+if __name__ == "__main__":
+    main()
