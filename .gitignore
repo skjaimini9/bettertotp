@@ -21,6 +21,7 @@ dist/
 linux/dist/
 linux/__pycache__/
 linux/*.pyc
+linux/pam/*.so
 
 # Web API
 web/__pycache__/

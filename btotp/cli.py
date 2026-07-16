@@ -1,4 +1,6 @@
 import argparse
+import os
+import stat
 import sys
 import time
 
@@ -8,6 +10,8 @@ from .vault import Vault
 from .uri import parse_otpauth, generate_uri
 from .clipboard import copy_to_clipboard
 from .config import load_config
+
+BTOTP_SECRET_PATH = os.path.join(os.path.expanduser("~"), ".btotp")
 
 
 def hex_to_bytes(h):
@@ -26,7 +30,9 @@ def _get_vault(args) -> Vault:
 
 def handle_generate_secret(args):
     secret = generate_secret()
-    if args.format == "b32":
+    if args.raw:
+        output = secret.hex()
+    elif args.format == "b32":
         output = secret_to_b32(secret)
     else:
         output = format_secret_for_display(secret)
@@ -39,6 +45,14 @@ def handle_generate_secret(args):
         print(f"Secret written to {args.output}", file=sys.stderr)
     else:
         print(output)
+    if args.qr:
+        uri = generate_uri("new-account", secret.hex())
+        try:
+            from .qr import print_qr
+            print_qr(uri)
+        except ImportError as e:
+            print(e, file=sys.stderr)
+            sys.exit(1)
 
 
 def handle_code(args):
@@ -298,6 +312,39 @@ def handle_config(args):
         print(f"Set {key}={value}")
 
 
+def handle_enroll(args):
+    vault = _get_vault(args)
+    try:
+        acc = vault.get(args.name)
+    except KeyError:
+        print(f"Account '{args.name}' not found", file=sys.stderr)
+        sys.exit(1)
+
+    secret_hex = acc["secret"]
+    with open(BTOTP_SECRET_PATH, "w") as f:
+        f.write(secret_hex + "\n")
+    os.chmod(BTOTP_SECRET_PATH, stat.S_IRUSR | stat.S_IWUSR)
+
+    print(f"2FA enabled for system login")
+    print(f"Secret written to {BTOTP_SECRET_PATH}")
+    print()
+    print("Configure PAM:")
+    print("  auth required pam_btotp.so nullok")
+    print()
+    print("Test with:")
+    print("  pamtester sshd $(whoami) authenticate")
+
+
+def handle_unenroll(args):
+    if os.path.exists(BTOTP_SECRET_PATH):
+        os.remove(BTOTP_SECRET_PATH)
+        print(f"2FA disabled for system login")
+        print(f"Removed {BTOTP_SECRET_PATH}")
+    else:
+        print("No enrollment found", file=sys.stderr)
+        sys.exit(1)
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         description="BetterTOTP - Time-based one-time passwords with alphanumeric+special output"
@@ -307,6 +354,8 @@ def build_parser():
     p_gen = sub.add_parser("generate-secret", help="Generate a new secret key")
     p_gen.add_argument("-o", "--output", help="Output file (default: stdout)")
     p_gen.add_argument("-f", "--format", choices=["hex", "b32"], default="hex", help="Output format")
+    p_gen.add_argument("--raw", action="store_true", help="Output raw hex (no spaces, lowercase)")
+    p_gen.add_argument("--qr", action="store_true", help="Display QR code for the generated secret")
 
     p_code = sub.add_parser("code", help="Generate a TOTP code")
     p_code.add_argument("-s", "--secret", help="Secret key (hex string)")
@@ -374,6 +423,11 @@ def build_parser():
     p_help = sub.add_parser("help", help="Show help for a command")
     p_help.add_argument("command_name", nargs="?", help="Command to show help for")
 
+    p_enroll = sub.add_parser("enroll", help="Enable 2FA for system login (SSH, sudo)")
+    p_enroll.add_argument("name", help="Account name in vault to enroll")
+
+    sub.add_parser("unenroll", help="Disable 2FA for system login")
+
     return parser
 
 
@@ -410,6 +464,8 @@ def main():
         "uri": handle_uri,
         "completion": handle_completion,
         "config": handle_config,
+        "enroll": handle_enroll,
+        "unenroll": handle_unenroll,
     }
 
     handler = handlers.get(args.command)
