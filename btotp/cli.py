@@ -338,8 +338,11 @@ def handle_enroll(args):
 def handle_unenroll(args):
     if os.path.exists(BTOTP_SECRET_PATH):
         os.remove(BTOTP_SECRET_PATH)
-        print(f"2FA disabled for system login")
+        print("2FA disabled for system login")
         print(f"Removed {BTOTP_SECRET_PATH}")
+        print()
+        print("WARNING: If /etc/pam.d/sshd uses 'auth required pam_btotp.so' (without nullok),")
+        print("you may be locked out. Edit the PAM config to add 'nullok' or remove the line.")
     else:
         print("No enrollment found", file=sys.stderr)
         sys.exit(1)
