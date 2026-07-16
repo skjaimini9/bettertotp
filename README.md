@@ -23,6 +23,7 @@ A TOTP-based time-varying code generator with alphanumeric and special character
 - **Android app** — Native Kotlin app with Master Password or Biometric vault modes, Material 3 UI
 - **Linux binary** — Standalone executable (no Python needed), Tkinter GUI if available, CLI fallback, registers as `otpauth://` handler
 - **Web API** — FastAPI microservice for TOTP enrollment and verification, stateless, ready to integrate into any website backend
+- **PAM 2FA** — C-based PAM module (`pam_btotp.so`) for Linux SSH/sudo/system-login 2FA, reads secrets from `~/.btotp`
 
 ---
 
@@ -136,6 +137,27 @@ curl -X POST http://localhost:8000/api/verify \
 
 The API is stateless — your backend owns the secret storage. See `web/README.md` for full documentation.
 
+### Linux PAM module
+
+A C-based PAM module for 2FA on SSH, sudo, and other PAM-aware services.
+
+```bash
+# 1. Build the module
+cd linux/pam
+make
+
+# 2. Install (requires root)
+sudo make install
+
+# 3. Enroll a vault account for system login
+btotp enroll my-account
+
+# 4. Add to /etc/pam.d/sshd (or other service)
+auth required pam_btotp.so nullok
+```
+
+The module reads the secret from `~/.btotp` (created by `btotp enroll`). Supports `nullok` (skip 2FA if no `~/.btotp` exists), custom secret path, time window, and debug logging. See `linux/pam/README.md` for full documentation.
+
 ---
 
 ## Quick Start
@@ -191,13 +213,15 @@ Output:
 Generate a new random secret key (64 bytes by default).
 
 ```
-btotp generate-secret [-o FILE] [-f {hex,b32}]
+btotp generate-secret [-o FILE] [-f {hex,b32}] [--raw] [--qr]
 ```
 
 | Flag | Description |
 |---|---|
 | `-o, --output` | Write secret to file instead of stdout |
 | `-f, --format` | Output format: `hex` (default, chunked) or `b32` |
+| `--raw` | Output raw hex (no spaces, lowercase) — safe for copy-paste |
+| `--qr` | Display a QR code for the generated secret (useful for mobile enrollment) |
 
 ### `btotp code`
 
@@ -405,6 +429,26 @@ Example:
 btotp config --set time_step=30
 btotp config --set code_length=8
 btotp config --show
+```
+
+### `btotp enroll`
+
+Enable 2FA for system login (SSH, sudo). Extracts the secret from a vault account to `~/.btotp` for the PAM module.
+
+```
+btotp enroll NAME
+```
+
+| Argument | Description |
+|---|---|
+| `NAME` | Account name in the vault to enroll |
+
+### `btotp unenroll`
+
+Disable 2FA for system login by removing `~/.btotp`.
+
+```
+btotp unenroll
 ```
 
 ### `btotp help`
